@@ -1,0 +1,23 @@
+# Filets de securite secrets (scan verif-empire 2026-08-27, P0-2026-008)
+.env
+.env.*
+*.env
+*.key
+*.pem
+credentials*
+id_rsa*
+id_ed25519*
+
+# Dependances / builds
+node_modules/
+dist/
+build/
+.venv/
+__pycache__/
+*.pyc
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
