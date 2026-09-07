@@ -1,0 +1,40 @@
+# === BLOC EMPIRE ORGANIZEN -- ne pas modifier a la main ===
+# Pose par 04_TOOLS/verif-empire/install_bricks.py
+# Points 1 et 2 de CHECKLIST_VERIF_EMPIRE.md : aucun secret ne doit pouvoir
+# entrer dans git, meme par un `git add .` distrait.
+
+# Fichiers d'environnement, toutes formes
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Equivalents selon la stack
+# Cloudflare Workers / Wrangler
+.dev.vars
+# direnv
+.envrc
+secrets.json
+secrets.yml
+secrets.yaml
+credentials.json
+service-account*.json
+
+# Cles et certificats
+*.pem
+*.key
+*.p12
+*.pfx
+*.ppk
+id_rsa
+id_ed25519
+
+# Sorties du scanner
+verif_empire_*.csv
+verif_empire_*.md
+verif_empire_*_screenshots/
+
+# === FIN BLOC EMPIRE ===
