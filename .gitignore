@@ -20,8 +20,8 @@
 secrets.json
 secrets.yml
 secrets.yaml
-credentials.json
-service-account*.json
+credentials*
+service-account*
 
 # Cles et certificats
 *.pem
@@ -29,8 +29,8 @@ service-account*.json
 *.p12
 *.pfx
 *.ppk
-id_rsa
-id_ed25519
+id_rsa*
+id_ed25519*
 
 # Sorties du scanner
 verif_empire_*.csv
