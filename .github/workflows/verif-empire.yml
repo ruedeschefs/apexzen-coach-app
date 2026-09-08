@@ -1,0 +1,77 @@
+# Garde-fou secrets -- Empire ORGANIZEN
+# A copier dans .github/workflows/ de chaque depot.
+# Autonome : aucune dependance, aucun secret, aucun reseau sortant.
+# Reference : 00_CONSTITUTION/CHECKLIST_VERIF_EMPIRE.md points 1, 2 et 7.
+name: verif-empire
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Aucun secret dans le depot
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fichiers d'environnement suivis (point 2)
+        run: |
+          TROUVE=$(git ls-files \
+            | grep -E '(^|/)\.env($|\.)|(^|/)\.dev\.vars$|\.(pem|key|p12|pfx)$' \
+            | grep -vE '\.(example|sample|template)$' || true)
+          if [ -n "$TROUVE" ]; then
+            echo "::error::Fichier de secrets suivi par git"
+            echo "$TROUVE"
+            exit 1
+          fi
+          echo "OK : aucun fichier d'environnement suivi"
+
+      - name: Regle .env presente dans .gitignore (point 2)
+        run: |
+          if [ ! -f .gitignore ]; then
+            echo "::error::Aucun .gitignore dans ce depot"
+            exit 1
+          fi
+          if ! grep -qE '^\s*!?\*?\.?env|^\s*\.dev\.vars' .gitignore; then
+            echo "::error::Aucune regle .env dans .gitignore"
+            echo "Corriger : ajouter le bloc 04_TOOLS/verif-empire/bricks/gitignore-empire.txt"
+            exit 1
+          fi
+          echo "OK : regle presente"
+
+      - name: Cles vivantes dans le code (point 1)
+        run: |
+          MOTIFS='sk-ant-api[0-9]{2}-[A-Za-z0-9_-]{20}|sk-proj-[A-Za-z0-9_-]{20}|sk-[A-Za-z0-9]{48}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{60}|AKIA[0-9A-Z]{16}|xox[baprs]-[0-9]{10,}|shpat_[a-f0-9]{32}|AIza[0-9A-Za-z_-]{35}|re_[A-Za-z0-9]{8}_[A-Za-z0-9]{16,}|glpat-[A-Za-z0-9_-]{20}'
+          FICHIERS=$(git grep -IlE "$MOTIFS" -- . 2>/dev/null \
+                     | grep -vE '\.(example|sample|template)$' || true)
+          if [ -n "$FICHIERS" ]; then
+            echo "::error::Cle vivante trouvee dans :"
+            echo "$FICHIERS"
+            echo "Une cle poussee est brulee : la ROTER, pas seulement la retirer."
+            echo "Runbook : 04_TOOLS/verif-empire/bricks/ROTATION_SECRETS.md"
+            exit 1
+          fi
+          echo "OK : aucun motif de cle vivante"
+
+      - name: Cle Supabase service_role cote client (point 7)
+        run: |
+          FAIL=0
+          for F in $(git grep -IlE 'eyJhbGciOi[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{20,}' -- . 2>/dev/null || true); do
+            for J in $(grep -ohE 'eyJhbGciOi[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{20,}' "$F" | sort -u); do
+              CHARGE=$(printf '%s' "$J" | cut -d. -f2)
+              case $(( ${#CHARGE} % 4 )) in 2) CHARGE="$CHARGE==" ;; 3) CHARGE="$CHARGE=" ;; esac
+              ROLE=$(printf '%s' "$CHARGE" | tr '_-' '/+' | base64 -d 2>/dev/null \
+                     | grep -oE '"role":"[a-z_]+"' || true)
+              case "$ROLE" in
+                *service_role*)
+                  echo "::error file=$F::Cle Supabase service_role (contourne la RLS)"
+                  FAIL=1 ;;
+              esac
+            done
+          done
+          [ "$FAIL" -eq 0 ] && echo "OK : aucune cle service_role" || exit 1

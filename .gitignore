@@ -1,23 +1,40 @@
-# Filets de securite secrets (scan verif-empire 2026-08-27, P0-2026-008)
+# === BLOC EMPIRE ORGANIZEN -- ne pas modifier a la main ===
+# Pose par 04_TOOLS/verif-empire/install_bricks.py
+# Points 1 et 2 de CHECKLIST_VERIF_EMPIRE.md : aucun secret ne doit pouvoir
+# entrer dans git, meme par un `git add .` distrait.
+
+# Fichiers d'environnement, toutes formes
 .env
 .env.*
 *.env
-*.key
-*.pem
+*.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Equivalents selon la stack
+# Cloudflare Workers / Wrangler
+.dev.vars
+# direnv
+.envrc
+secrets.json
+secrets.yml
+secrets.yaml
 credentials*
+service-account*
+
+# Cles et certificats
+*.pem
+*.key
+*.p12
+*.pfx
+*.ppk
 id_rsa*
 id_ed25519*
 
-# Dependances / builds
-node_modules/
-dist/
-build/
-.venv/
-__pycache__/
-*.pyc
+# Sorties du scanner
+verif_empire_*.csv
+verif_empire_*.md
+verif_empire_*_screenshots/
 
-# OS / IDE
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
+# === FIN BLOC EMPIRE ===
